@@ -1,8 +1,7 @@
 import { useSubjects } from '@/hooks/useSubjects';
 import { useAttendance } from '@/hooks/useAttendance';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, X, Ban, Clock, MapPin } from 'lucide-react';
+import { Check, X, Ban, Clock, MapPin, Zap } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -30,28 +29,34 @@ export function TodaysClasses() {
 
   if (todaysClasses.length === 0) {
     return (
-      <Card className="border-0 shadow-lg">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Today's Classes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>No classes scheduled for today!</p>
-            <p className="text-sm mt-1">Enjoy your day off 🎉</p>
+      <div className="glass-card p-6 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+        <div className="flex items-center gap-2 mb-4">
+          <Zap className="w-5 h-5 text-accent" />
+          <h3 className="font-semibold text-foreground">Today's Classes</h3>
+        </div>
+        <div className="text-center py-8">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted/50 flex items-center justify-center">
+            <Clock className="w-8 h-8 text-muted-foreground" />
           </div>
-        </CardContent>
-      </Card>
+          <p className="text-muted-foreground">No classes today!</p>
+          <p className="text-sm text-muted-foreground/60 mt-1">Enjoy your day off 🎉</p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="border-0 shadow-lg">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg">Today's Classes</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {todaysClasses.map((subject) => {
+    <div className="glass-card p-5 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+      <div className="flex items-center gap-2 mb-4">
+        <Zap className="w-5 h-5 text-accent" />
+        <h3 className="font-semibold text-foreground">Today's Classes</h3>
+        <span className="ml-auto text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">
+          {todaysClasses.length} classes
+        </span>
+      </div>
+      
+      <div className="space-y-3">
+        {todaysClasses.map((subject, index) => {
           const status = getStatus(subject.id);
           const isOngoing = currentTime >= subject.start_time && currentTime <= subject.end_time;
           const isPast = currentTime > subject.end_time;
@@ -60,30 +65,34 @@ export function TodaysClasses() {
             <div
               key={subject.id}
               className={cn(
-                'p-3 rounded-lg border-l-4 bg-card transition-all',
-                isOngoing && 'ring-2 ring-primary/50 shadow-md',
-                isPast && !status && 'opacity-60'
+                'p-4 rounded-xl bg-white/5 border border-white/10 transition-all animate-fade-in',
+                isOngoing && 'ring-2 ring-primary/50 bg-primary/5 glow-sm',
+                isPast && !status && 'opacity-50'
               )}
-              style={{ borderLeftColor: subject.color }}
+              style={{ 
+                animationDelay: `${0.1 * (index + 1)}s`,
+                borderLeftWidth: '4px',
+                borderLeftColor: subject.color,
+              }}
             >
-              <div className="flex items-start justify-between gap-2">
+              <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold truncate">{subject.name}</h3>
+                    <h4 className="font-semibold text-foreground truncate">{subject.name}</h4>
                     {isOngoing && (
-                      <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full animate-pulse-ring">
-                        LIVE
+                      <span className="text-[10px] uppercase tracking-wider bg-primary text-primary-foreground px-2 py-0.5 rounded-full font-bold animate-pulse">
+                        Live
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
+                      <Clock className="w-3.5 h-3.5" />
                       {subject.start_time.slice(0, 5)} - {subject.end_time.slice(0, 5)}
                     </span>
                     {subject.room && (
                       <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
+                        <MapPin className="w-3.5 h-3.5" />
                         {subject.room}
                       </span>
                     )}
@@ -92,19 +101,19 @@ export function TodaysClasses() {
 
                 {status ? (
                   <div className={cn(
-                    'px-2 py-1 rounded-full text-xs font-medium',
-                    status === 'present' && 'bg-success/10 text-success',
-                    status === 'absent' && 'bg-destructive/10 text-destructive',
-                    status === 'cancelled' && 'bg-muted text-muted-foreground'
+                    'px-3 py-1.5 rounded-xl text-xs font-semibold',
+                    status === 'present' && 'bg-success/20 text-success',
+                    status === 'absent' && 'bg-destructive/20 text-destructive',
+                    status === 'cancelled' && 'bg-muted/50 text-muted-foreground'
                   )}>
                     {status.charAt(0).toUpperCase() + status.slice(1)}
                   </div>
                 ) : (
-                  <div className="flex gap-1">
+                  <div className="flex gap-1.5">
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8 text-success hover:bg-success/10 hover:text-success"
+                      className="h-9 w-9 rounded-xl text-success hover:bg-success/20 hover:text-success"
                       onClick={() => markAttendance(subject.id, todayStr, 'present')}
                     >
                       <Check className="w-4 h-4" />
@@ -112,7 +121,7 @@ export function TodaysClasses() {
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      className="h-9 w-9 rounded-xl text-destructive hover:bg-destructive/20 hover:text-destructive"
                       onClick={() => markAttendance(subject.id, todayStr, 'absent')}
                     >
                       <X className="w-4 h-4" />
@@ -120,7 +129,7 @@ export function TodaysClasses() {
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8 text-muted-foreground hover:bg-muted"
+                      className="h-9 w-9 rounded-xl text-muted-foreground hover:bg-muted/50"
                       onClick={() => markAttendance(subject.id, todayStr, 'cancelled')}
                     >
                       <Ban className="w-4 h-4" />
@@ -131,7 +140,7 @@ export function TodaysClasses() {
             </div>
           );
         })}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

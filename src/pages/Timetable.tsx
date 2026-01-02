@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useSubjects } from '@/hooks/useSubjects';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Clock, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, MapPin, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -20,96 +19,123 @@ export default function Timetable() {
   const goToPrevDay = () => setSelectedDay(d => (d === 0 ? 6 : d - 1));
   const goToNextDay = () => setSelectedDay(d => (d === 6 ? 0 : d + 1));
 
+  const isToday = selectedDay === new Date().getDay();
+
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
-        <h1 className="text-2xl font-bold text-foreground">Timetable</h1>
-
-        {/* Day Selector */}
-        <div className="flex items-center gap-2 justify-center">
-          <Button variant="ghost" size="icon" onClick={goToPrevDay}>
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-          
-          <div className="flex gap-1 overflow-x-auto py-2 px-1">
-            {SHORT_DAYS.map((day, index) => (
-              <Button
-                key={day}
-                variant={selectedDay === index ? 'default' : 'ghost'}
-                size="sm"
-                className={cn(
-                  'min-w-[3rem]',
-                  selectedDay === index && 'shadow-md'
-                )}
-                onClick={() => setSelectedDay(index)}
-              >
-                {day}
-              </Button>
-            ))}
-          </div>
-
-          <Button variant="ghost" size="icon" onClick={goToNextDay}>
-            <ChevronRight className="w-5 h-5" />
-          </Button>
+        <div className="flex items-center gap-2">
+          <CalendarDays className="w-6 h-6 text-primary" />
+          <h1 className="text-2xl font-bold gradient-text">Timetable</h1>
         </div>
 
-        <h2 className="text-lg font-semibold text-center text-muted-foreground">
-          {DAYS[selectedDay]}
-        </h2>
+        {/* Day Selector */}
+        <div className="glass-card p-3">
+          <div className="flex items-center gap-2 justify-center">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={goToPrevDay}
+              className="rounded-xl hover:bg-white/10"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            
+            <div className="flex gap-1 overflow-x-auto py-1 px-1 flex-1 justify-center">
+              {SHORT_DAYS.map((day, index) => (
+                <Button
+                  key={day}
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    'min-w-[2.75rem] rounded-xl transition-all',
+                    selectedDay === index 
+                      ? 'bg-primary text-primary-foreground shadow-lg glow-sm' 
+                      : 'hover:bg-white/10'
+                  )}
+                  onClick={() => setSelectedDay(index)}
+                >
+                  {day}
+                </Button>
+              ))}
+            </div>
+
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={goToNextDay}
+              className="rounded-xl hover:bg-white/10"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-center gap-2">
+          <h2 className="text-lg font-semibold text-foreground">
+            {DAYS[selectedDay]}
+          </h2>
+          {isToday && (
+            <span className="text-xs bg-accent/20 text-accent px-2 py-0.5 rounded-full font-medium">
+              Today
+            </span>
+          )}
+        </div>
 
         {/* Classes List */}
         <div className="space-y-3">
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading...</div>
+            <div className="glass-card p-8 text-center text-muted-foreground">
+              <div className="animate-pulse">Loading...</div>
+            </div>
           ) : daySubjects.length === 0 ? (
-            <Card className="border-0 shadow-lg">
-              <CardContent className="py-8 text-center text-muted-foreground">
-                <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>No classes on {DAYS[selectedDay]}</p>
-              </CardContent>
-            </Card>
+            <div className="glass-card p-8 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted/50 flex items-center justify-center">
+                <Clock className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <p className="text-muted-foreground">No classes on {DAYS[selectedDay]}</p>
+              <p className="text-sm text-muted-foreground/60 mt-1">Enjoy your free day! 🎉</p>
+            </div>
           ) : (
             daySubjects.map((subject, index) => (
-              <Card
+              <div
                 key={subject.id}
-                className="border-0 shadow-lg overflow-hidden animate-fade-in"
-                style={{ animationDelay: `${index * 50}ms` }}
+                className="glass-card p-4 animate-slide-up"
+                style={{ 
+                  animationDelay: `${index * 0.05}s`,
+                  borderLeftWidth: '4px',
+                  borderLeftColor: subject.color,
+                }}
               >
-                <div className="flex">
-                  <div 
-                    className="w-2" 
-                    style={{ backgroundColor: subject.color }}
-                  />
-                  <CardContent className="flex-1 p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-semibold text-foreground">{subject.name}</h3>
-                        {subject.short_name && (
-                          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                            {subject.short_name}
-                          </span>
-                        )}
-                      </div>
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: subject.color }}
-                      />
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-foreground">{subject.name}</h3>
+                      {subject.short_name && (
+                        <span className="text-xs text-muted-foreground bg-white/10 px-2 py-0.5 rounded-full">
+                          {subject.short_name}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1.5">
                         <Clock className="w-4 h-4" />
                         {subject.start_time.slice(0, 5)} - {subject.end_time.slice(0, 5)}
                       </span>
                       {subject.room && (
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1.5">
                           <MapPin className="w-4 h-4" />
                           {subject.room}
                         </span>
                       )}
                     </div>
-                  </CardContent>
+                  </div>
+                  <div
+                    className="w-4 h-4 rounded-full ring-2 ring-white/20"
+                    style={{ backgroundColor: subject.color }}
+                  />
                 </div>
-              </Card>
+              </div>
             ))
           )}
         </div>
