@@ -1,0 +1,19 @@
+services:
+  - type: static
+    name: my-schedule-hub
+    env: static
+    # Build command for Vite
+    buildCommand: npm install && npm run build
+    # Vite outputs to the 'dist' folder by default
+    staticPublishPath: ./dist
+    # Environment variables for Supabase
+    envVars:
+      - key: VITE_SUPABASE_URL
+        sync: false # You will set this manually in the Render Dashboard
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false # You will set this manually in the Render Dashboard
+    # Optional: Configure routing for SPAs (React Router/Vue Router)
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
