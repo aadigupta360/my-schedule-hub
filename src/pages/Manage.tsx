@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useSubjects, Subject } from '@/hooks/useSubjects';
 import { useProfile } from '@/hooks/useProfile';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,27 +10,25 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, Trash2, Edit2, User, Book, CalendarPlus, CalendarIcon } from 'lucide-react';
+import { Plus, Trash2, User, Book, CalendarPlus, CalendarIcon, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const COLORS = [
-  '#6366f1', '#8b5cf6', '#d946ef', '#ec4899', '#f43f5e',
-  '#f97316', '#eab308', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6'
+  '#8b5cf6', '#6366f1', '#3b82f6', '#06b6d4', '#14b8a6',
+  '#22c55e', '#eab308', '#f97316', '#ef4444', '#ec4899', '#d946ef'
 ];
 
 export default function Manage() {
-  const { subjects, addSubject, updateSubject, deleteSubject } = useSubjects();
+  const { subjects, addSubject, deleteSubject } = useSubjects();
   const { profile, updateProfile } = useProfile();
   const { toast } = useToast();
   
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isExtraOpen, setIsExtraOpen] = useState(false);
-  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   
-  // Form state
   const [name, setName] = useState('');
   const [shortName, setShortName] = useState('');
   const [dayOfWeek, setDayOfWeek] = useState('1');
@@ -41,11 +38,19 @@ export default function Manage() {
   const [color, setColor] = useState(COLORS[0]);
   const [extraDate, setExtraDate] = useState<Date>();
 
-  // Profile form
-  const [fullName, setFullName] = useState(profile?.full_name || '');
-  const [rollNumber, setRollNumber] = useState(profile?.roll_number || '');
-  const [semester, setSemester] = useState(profile?.semester || '');
-  const [department, setDepartment] = useState(profile?.department || '');
+  const [fullName, setFullName] = useState('');
+  const [rollNumber, setRollNumber] = useState('');
+  const [semester, setSemester] = useState('');
+  const [department, setDepartment] = useState('');
+
+  useEffect(() => {
+    if (profile) {
+      setFullName(profile.full_name || '');
+      setRollNumber(profile.roll_number || '');
+      setSemester(profile.semester || '');
+      setDepartment(profile.department || '');
+    }
+  }, [profile]);
 
   const resetForm = () => {
     setName('');
@@ -56,7 +61,6 @@ export default function Manage() {
     setRoom('');
     setColor(COLORS[0]);
     setExtraDate(undefined);
-    setEditingSubject(null);
   };
 
   const handleAddSubject = async () => {
@@ -80,7 +84,7 @@ export default function Manage() {
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Success', description: 'Subject added successfully' });
+      toast({ title: 'Success', description: 'Subject added' });
       resetForm();
       setIsAddOpen(false);
     }
@@ -88,7 +92,7 @@ export default function Manage() {
 
   const handleAddExtraClass = async () => {
     if (!name.trim() || !extraDate) {
-      toast({ title: 'Error', description: 'Subject name and date are required', variant: 'destructive' });
+      toast({ title: 'Error', description: 'Name and date required', variant: 'destructive' });
       return;
     }
 
@@ -107,7 +111,7 @@ export default function Manage() {
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Success', description: 'Extra class added successfully' });
+      toast({ title: 'Success', description: 'Extra class added' });
       resetForm();
       setIsExtraOpen(false);
     }
@@ -133,7 +137,7 @@ export default function Manage() {
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Updated', description: 'Profile saved successfully' });
+      toast({ title: 'Updated', description: 'Profile saved' });
     }
   };
 
@@ -142,44 +146,53 @@ export default function Manage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 animate-fade-in">
-        <h1 className="text-2xl font-bold text-foreground">Manage</h1>
+      <div className="space-y-5 animate-fade-in">
+        <div className="flex items-center gap-2">
+          <Settings className="w-6 h-6 text-primary" />
+          <h1 className="text-2xl font-bold gradient-text">Manage</h1>
+        </div>
 
         <Tabs defaultValue="subjects">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="subjects">Subjects</TabsTrigger>
-            <TabsTrigger value="extra">Extra Class</TabsTrigger>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 bg-white/5 rounded-xl p-1">
+            <TabsTrigger value="subjects" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              Subjects
+            </TabsTrigger>
+            <TabsTrigger value="extra" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              Extra
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              Profile
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="subjects" className="space-y-4 mt-4">
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full">
+                <Button className="w-full rounded-xl h-12 bg-gradient-to-r from-primary to-secondary glow-sm">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Regular Subject
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="glass-card border-white/10">
                 <DialogHeader>
                   <DialogTitle>Add New Subject</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <Label>Subject Name *</Label>
-                      <Input value={name} onChange={e => setName(e.target.value)} placeholder="Mathematics" />
+                      <Label className="text-sm">Name *</Label>
+                      <Input value={name} onChange={e => setName(e.target.value)} placeholder="Mathematics" className="bg-white/5 border-white/10 rounded-xl" />
                     </div>
                     <div className="space-y-2">
-                      <Label>Short Name</Label>
-                      <Input value={shortName} onChange={e => setShortName(e.target.value)} placeholder="MATH" />
+                      <Label className="text-sm">Short Name</Label>
+                      <Input value={shortName} onChange={e => setShortName(e.target.value)} placeholder="MATH" className="bg-white/5 border-white/10 rounded-xl" />
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label>Day</Label>
+                    <Label className="text-sm">Day</Label>
                     <Select value={dayOfWeek} onValueChange={setDayOfWeek}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-white/5 border-white/10 rounded-xl">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -190,24 +203,24 @@ export default function Manage() {
                     </Select>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <Label>Start Time</Label>
-                      <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
+                      <Label className="text-sm">Start Time</Label>
+                      <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="bg-white/5 border-white/10 rounded-xl" />
                     </div>
                     <div className="space-y-2">
-                      <Label>End Time</Label>
-                      <Input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
+                      <Label className="text-sm">End Time</Label>
+                      <Input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className="bg-white/5 border-white/10 rounded-xl" />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Room/Location</Label>
-                    <Input value={room} onChange={e => setRoom(e.target.value)} placeholder="Room 101" />
+                    <Label className="text-sm">Room</Label>
+                    <Input value={room} onChange={e => setRoom(e.target.value)} placeholder="Room 101" className="bg-white/5 border-white/10 rounded-xl" />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Color</Label>
+                    <Label className="text-sm">Color</Label>
                     <div className="flex gap-2 flex-wrap">
                       {COLORS.map(c => (
                         <button
@@ -215,7 +228,7 @@ export default function Manage() {
                           type="button"
                           className={cn(
                             'w-8 h-8 rounded-full transition-all',
-                            color === c && 'ring-2 ring-offset-2 ring-primary'
+                            color === c && 'ring-2 ring-offset-2 ring-offset-background ring-white'
                           )}
                           style={{ backgroundColor: c }}
                           onClick={() => setColor(c)}
@@ -224,42 +237,47 @@ export default function Manage() {
                     </div>
                   </div>
 
-                  <Button onClick={handleAddSubject} className="w-full">Add Subject</Button>
+                  <Button onClick={handleAddSubject} className="w-full rounded-xl h-11">Add Subject</Button>
                 </div>
               </DialogContent>
             </Dialog>
 
             {regularSubjects.length === 0 ? (
-              <Card className="border-0 shadow-lg">
-                <CardContent className="py-8 text-center text-muted-foreground">
-                  <Book className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No subjects added yet</p>
-                  <p className="text-sm mt-1">Click the button above to add your first subject</p>
-                </CardContent>
-              </Card>
+              <div className="glass-card p-8 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted/50 flex items-center justify-center">
+                  <Book className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <p className="text-muted-foreground">No subjects yet</p>
+                <p className="text-sm text-muted-foreground/60 mt-1">Add your first subject above</p>
+              </div>
             ) : (
-              regularSubjects.map(subject => (
-                <Card key={subject.id} className="border-0 shadow-lg">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-12 rounded-full" style={{ backgroundColor: subject.color }} />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold truncate">{subject.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {DAYS[subject.day_of_week]} • {subject.start_time.slice(0, 5)} - {subject.end_time.slice(0, 5)}
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:bg-destructive/10"
-                        onClick={() => handleDeleteSubject(subject.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+              regularSubjects.map((subject, index) => (
+                <div 
+                  key={subject.id} 
+                  className="glass-card p-4 animate-slide-up"
+                  style={{ 
+                    animationDelay: `${index * 0.05}s`,
+                    borderLeftWidth: '4px',
+                    borderLeftColor: subject.color,
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold truncate">{subject.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {DAYS[subject.day_of_week]} • {subject.start_time.slice(0, 5)} - {subject.end_time.slice(0, 5)}
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:bg-destructive/20 rounded-xl"
+                      onClick={() => handleDeleteSubject(subject.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
               ))
             )}
           </TabsContent>
@@ -267,31 +285,31 @@ export default function Manage() {
           <TabsContent value="extra" className="space-y-4 mt-4">
             <Dialog open={isExtraOpen} onOpenChange={setIsExtraOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full" variant="secondary">
+                <Button className="w-full rounded-xl h-12" variant="secondary">
                   <CalendarPlus className="w-4 h-4 mr-2" />
                   Add Extra Class
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="glass-card border-white/10">
                 <DialogHeader>
                   <DialogTitle>Add Extra Class</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
                   <div className="space-y-2">
-                    <Label>Subject Name *</Label>
-                    <Input value={name} onChange={e => setName(e.target.value)} placeholder="Mathematics" />
+                    <Label className="text-sm">Subject Name *</Label>
+                    <Input value={name} onChange={e => setName(e.target.value)} placeholder="Mathematics" className="bg-white/5 border-white/10 rounded-xl" />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Date *</Label>
+                    <Label className="text-sm">Date *</Label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start">
+                        <Button variant="outline" className="w-full justify-start bg-white/5 border-white/10 rounded-xl">
                           <CalendarIcon className="w-4 h-4 mr-2" />
                           {extraDate ? format(extraDate, 'PPP') : 'Pick a date'}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
+                      <PopoverContent className="w-auto p-0 glass-card">
                         <Calendar
                           mode="single"
                           selected={extraDate}
@@ -302,24 +320,24 @@ export default function Manage() {
                     </Popover>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <Label>Start Time</Label>
-                      <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
+                      <Label className="text-sm">Start Time</Label>
+                      <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="bg-white/5 border-white/10 rounded-xl" />
                     </div>
                     <div className="space-y-2">
-                      <Label>End Time</Label>
-                      <Input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
+                      <Label className="text-sm">End Time</Label>
+                      <Input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className="bg-white/5 border-white/10 rounded-xl" />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Room/Location</Label>
-                    <Input value={room} onChange={e => setRoom(e.target.value)} placeholder="Room 101" />
+                    <Label className="text-sm">Room</Label>
+                    <Input value={room} onChange={e => setRoom(e.target.value)} placeholder="Room 101" className="bg-white/5 border-white/10 rounded-xl" />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Color</Label>
+                    <Label className="text-sm">Color</Label>
                     <div className="flex gap-2 flex-wrap">
                       {COLORS.map(c => (
                         <button
@@ -327,7 +345,7 @@ export default function Manage() {
                           type="button"
                           className={cn(
                             'w-8 h-8 rounded-full transition-all',
-                            color === c && 'ring-2 ring-offset-2 ring-primary'
+                            color === c && 'ring-2 ring-offset-2 ring-offset-background ring-white'
                           )}
                           style={{ backgroundColor: c }}
                           onClick={() => setColor(c)}
@@ -336,94 +354,102 @@ export default function Manage() {
                     </div>
                   </div>
 
-                  <Button onClick={handleAddExtraClass} className="w-full">Add Extra Class</Button>
+                  <Button onClick={handleAddExtraClass} className="w-full rounded-xl h-11">Add Extra Class</Button>
                 </div>
               </DialogContent>
             </Dialog>
 
             {extraClasses.length === 0 ? (
-              <Card className="border-0 shadow-lg">
-                <CardContent className="py-8 text-center text-muted-foreground">
-                  <CalendarPlus className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No extra classes scheduled</p>
-                  <p className="text-sm mt-1">Add one-time makeup or extra classes here</p>
-                </CardContent>
-              </Card>
+              <div className="glass-card p-8 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted/50 flex items-center justify-center">
+                  <CalendarPlus className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <p className="text-muted-foreground">No extra classes</p>
+                <p className="text-sm text-muted-foreground/60 mt-1">Add makeup or extra classes here</p>
+              </div>
             ) : (
-              extraClasses.map(subject => (
-                <Card key={subject.id} className="border-0 shadow-lg">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-12 rounded-full" style={{ backgroundColor: subject.color }} />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold truncate">{subject.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {subject.extra_date} • {subject.start_time.slice(0, 5)} - {subject.end_time.slice(0, 5)}
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:bg-destructive/10"
-                        onClick={() => handleDeleteSubject(subject.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+              extraClasses.map((subject, index) => (
+                <div 
+                  key={subject.id} 
+                  className="glass-card p-4 animate-slide-up"
+                  style={{ 
+                    animationDelay: `${index * 0.05}s`,
+                    borderLeftWidth: '4px',
+                    borderLeftColor: subject.color,
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold truncate">{subject.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {subject.extra_date} • {subject.start_time.slice(0, 5)} - {subject.end_time.slice(0, 5)}
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:bg-destructive/20 rounded-xl"
+                      onClick={() => handleDeleteSubject(subject.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
               ))
             )}
           </TabsContent>
 
           <TabsContent value="profile" className="mt-4">
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  Your Profile
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <div className="glass-card p-5">
+              <div className="flex items-center gap-2 mb-5">
+                <User className="w-5 h-5 text-primary" />
+                <h3 className="font-semibold">Your Profile</h3>
+              </div>
+              
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Full Name</Label>
+                  <Label className="text-sm">Full Name</Label>
                   <Input 
                     value={fullName} 
                     onChange={e => setFullName(e.target.value)} 
                     placeholder="John Doe"
+                    className="bg-white/5 border-white/10 rounded-xl h-11"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Roll Number</Label>
+                  <Label className="text-sm">Roll Number</Label>
                   <Input 
                     value={rollNumber} 
                     onChange={e => setRollNumber(e.target.value)} 
                     placeholder="2021CSE001"
+                    className="bg-white/5 border-white/10 rounded-xl h-11"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label>Semester</Label>
+                    <Label className="text-sm">Semester</Label>
                     <Input 
                       value={semester} 
                       onChange={e => setSemester(e.target.value)} 
                       placeholder="6"
+                      className="bg-white/5 border-white/10 rounded-xl h-11"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Department</Label>
+                    <Label className="text-sm">Department</Label>
                     <Input 
                       value={department} 
                       onChange={e => setDepartment(e.target.value)} 
-                      placeholder="Computer Science"
+                      placeholder="CSE"
+                      className="bg-white/5 border-white/10 rounded-xl h-11"
                     />
                   </div>
                 </div>
-                <Button onClick={handleUpdateProfile} className="w-full">
+                <Button onClick={handleUpdateProfile} className="w-full rounded-xl h-11 bg-gradient-to-r from-primary to-secondary">
                   Save Profile
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
